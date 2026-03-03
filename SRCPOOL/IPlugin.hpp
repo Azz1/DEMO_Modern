@@ -6,6 +6,7 @@ struct RenderContext {
     SDL_Renderer* renderer;
     int width;
     int height;
+    int topOffset = 0;  // pixels below menu bar
 };
 
 class IPlugin {

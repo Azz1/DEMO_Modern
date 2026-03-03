@@ -22,6 +22,9 @@
 #include "Julia.hpp"
 #include "Newton.hpp"
 #include "Ecosys.hpp"
+#include "Henon.hpp"
+#include "May.hpp"
+#include "Trammel.hpp"
 
 // ── Globals ───────────────────────────────────────────────────────────────────
 
@@ -154,13 +157,14 @@ static void mainLoop() {
     SDL_Event e;
     int w, h;
     SDL_GetRendererOutputSize(gRenderer, &w, &h);
-    RenderContext ctx{gRenderer, w, h};
+    float menuH = ImGui::GetFrameHeight();
+    RenderContext ctx{gRenderer, w, h, (int)menuH};
 
     while (SDL_PollEvent(&e)) {
         ImGui_ImplSDL2_ProcessEvent(&e);
         if (e.type==SDL_QUIT) { emscripten_cancel_main_loop(); return; }
         if (e.type==SDL_KEYDOWN && !gShowSaveDlg) {
-            if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_5)
+            if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_8)
                 gActive = e.key.keysym.sym-SDLK_1;
             if (e.key.keysym.sym==SDLK_F12) openSaveDlg();
         }
@@ -184,7 +188,7 @@ static void mainLoop() {
         ImGui::Separator();
         if (ImGui::MenuItem("📷 Save JPG","F12")) openSaveDlg();
         ImGui::Separator();
-        ImGui::TextDisabled("(keys 1-5)  |  drag to zoom");
+        ImGui::TextDisabled("(keys 1-8)  |  drag to zoom");
         ImGui::EndMainMenuBar();
     }
 
@@ -236,6 +240,9 @@ int main() {
     gPlugins.push_back(std::make_unique<JuliaPlugin>());
     gPlugins.push_back(std::make_unique<NewtonPlugin>());
     gPlugins.push_back(std::make_unique<EcosysPlugin>());
+    gPlugins.push_back(std::make_unique<HenonPlugin>());
+    gPlugins.push_back(std::make_unique<MayPlugin>());
+    gPlugins.push_back(std::make_unique<TrammelPlugin>());
     for (auto& p : gPlugins) p->setup(gRenderer);
 
     emscripten_set_main_loop(mainLoop, 0, 1);

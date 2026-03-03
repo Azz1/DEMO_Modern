@@ -131,7 +131,7 @@ void EcosysPlugin::step() {
     ++cycle_;
 }
 
-void EcosysPlugin::drawWorld(SDL_Renderer* r, int screenW, int screenH) {
+void EcosysPlugin::drawWorld(SDL_Renderer* r, int screenW, int screenH, int topOff) {
     // Recreate texture if needed
     if (!worldTex_ || texW_!=worldW_ || texH_!=worldH_) {
         if (worldTex_) SDL_DestroyTexture(worldTex_);
@@ -155,8 +155,8 @@ void EcosysPlugin::drawWorld(SDL_Renderer* r, int screenW, int screenH) {
     SDL_UnlockTexture(worldTex_);
 
     // Scale world to screen (leave bottom 130px for graph)
-    int dispH = screenH - 130;
-    SDL_Rect dst = {0, 0, screenW, dispH};
+    int dispH = screenH - 130 - topOff;
+    SDL_Rect dst = {0, topOff, screenW, dispH};
     SDL_RenderCopy(r, worldTex_, nullptr, &dst);
 
     // Draw grazers — color encodes fitness (gene specialization)
@@ -241,7 +241,7 @@ void EcosysPlugin::renderScene(const RenderContext& ctx) {
             if (grazers_.empty()) { running_=false; break; }
         }
 
-    drawWorld(ctx.renderer, ctx.width, ctx.height);
+    drawWorld(ctx.renderer, ctx.width, ctx.height, ctx.topOffset);
     drawPopGraph(ctx.renderer, 0, ctx.height-125, ctx.width, 120);
 }
 

@@ -20,6 +20,9 @@
 #include "Julia.hpp"
 #include "Newton.hpp"
 #include "Ecosys.hpp"
+#include "Henon.hpp"
+#include "May.hpp"
+#include "Trammel.hpp"
 
 namespace fs = std::filesystem;
 
@@ -121,6 +124,9 @@ int main() {
     plugins.push_back(std::make_unique<JuliaPlugin>());
     plugins.push_back(std::make_unique<NewtonPlugin>());
     plugins.push_back(std::make_unique<EcosysPlugin>());
+    plugins.push_back(std::make_unique<HenonPlugin>());
+    plugins.push_back(std::make_unique<MayPlugin>());
+    plugins.push_back(std::make_unique<TrammelPlugin>());
     for (auto& p : plugins) p->setup(renderer);
 
     // Init save dir to cwd
@@ -139,14 +145,15 @@ int main() {
         SDL_Event e;
         int w, h;
         SDL_GetRendererOutputSize(renderer,&w,&h);
-        RenderContext ctx{renderer,w,h};
+        float menuH = ImGui::GetFrameHeight();
+        RenderContext ctx{renderer, w, h, (int)menuH};
 
         bool browserOpen = fileBrowser.IsOpened();
         while (SDL_PollEvent(&e)) {
             ImGui_ImplSDL2_ProcessEvent(&e);
             if (e.type==SDL_QUIT) running=false;
             if (e.type==SDL_KEYDOWN && !browserOpen) {
-                if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_5)
+                if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_8)
                     active = e.key.keysym.sym-SDLK_1;
                 if (e.key.keysym.sym==SDLK_F12)
                     openSaveDialog(plugins[active]->name());
@@ -174,7 +181,7 @@ int main() {
             if (ImGui::MenuItem("📷 Save JPG","F12"))
                 openSaveDialog(plugins[active]->name());
             ImGui::Separator();
-            ImGui::TextDisabled("(keys 1-5)  |  drag to zoom");
+            ImGui::TextDisabled("(keys 1-8)  |  drag to zoom");
             ImGui::EndMainMenuBar();
         }
 

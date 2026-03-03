@@ -26,7 +26,7 @@ public:
 private:
     void reset();
     void step();
-    void drawWorld(SDL_Renderer* r, int screenW, int screenH);
+    void drawWorld(SDL_Renderer* r, int screenW, int screenH, int topOff=0);
     void drawPopGraph(SDL_Renderer* r, int x, int y, int w, int h);
 
     SDL_Renderer* renderer_ = nullptr;

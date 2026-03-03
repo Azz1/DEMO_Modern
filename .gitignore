@@ -5,18 +5,14 @@ build_wasm/
 *.o
 *.a
 
-# CMake generated
+# CMake generated (in build dirs only)
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
 install_manifest.txt
 
 # ImGui saved state
 imgui.ini
 
-# emsdk (too large, installed separately)
+# emsdk
 emsdk/
-
-# Downloaded files (can be re-fetched)
-# third_party is included (small headers only)
