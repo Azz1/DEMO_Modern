@@ -1,0 +1,3 @@
+/home/pi/Workspace/DEMO1/build_wasm/CMakeFiles/demo.dir
+/home/pi/Workspace/DEMO1/build_wasm/CMakeFiles/edit_cache.dir
+/home/pi/Workspace/DEMO1/build_wasm/CMakeFiles/rebuild_cache.dir

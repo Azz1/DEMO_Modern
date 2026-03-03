@@ -1,15 +1,16 @@
-# Build outputs
-build/
-build_wasm/
+# Compiled binaries and objects
 *.so
 *.o
 *.a
+*.wasm.map
 
-# CMake generated (in build dirs only)
+# CMake internal dirs
+**/CMakeFiles/
 CMakeCache.txt
-CMakeFiles/
 cmake_install.cmake
 install_manifest.txt
+Makefile
+**/Makefile
 
 # ImGui saved state
 imgui.ini
