@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo1 — Math Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:#0d0d14; display:flex; flex-direction:column;
+         align-items:center; justify-content:center;
+         height:100vh; overflow:hidden; color:#ccc; font-family:sans-serif; }
+  canvas { display:block; width:98vw; height:98vh;
+           image-rendering: pixelated; }
+  #status { position:fixed; bottom:6px; font-size:11px; color:#666; }
+</style>
+</head>
+<body>
+<canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="1"></canvas>
+<div id="status">Loading…</div>
+<script>
+  function resizeCanvas() {
+    var c  = document.getElementById('canvas');
+    var w  = Math.floor(window.innerWidth  * 0.98);
+    var h  = Math.floor(window.innerHeight * 0.98);
+    // Keep canvas internal resolution in sync
+    c.width  = w;
+    c.height = h;
+    if (window.Module && Module._SDL_SetWindowSize)
+      Module.ccall('SDL_SetWindowSize', null, ['number','number','number'],
+                   [0, w, h]);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+
+  // Initial size before Module loads
+  (function() {
+    var c = document.getElementById('canvas');
+    c.width  = Math.floor(window.innerWidth  * 0.98);
+    c.height = Math.floor(window.innerHeight * 0.98);
+  })();
+
+  window.addEventListener('load', function() {
+    document.getElementById('canvas').focus();
+  });
+
+  var Module = {
+    canvas: document.getElementById('canvas'),
+    setStatus: function(s) {
+      var el = document.getElementById('status');
+      if (el) el.textContent = s;
+    },
+    onRuntimeInitialized: function() {
+      var el = document.getElementById('status');
+      if (el) el.textContent = '';
+      resizeCanvas();
+    },
+    print:    function(s) { console.log(s);  },
+    printErr: function(s) { console.error(s); }
+  };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>
