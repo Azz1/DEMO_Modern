@@ -3,6 +3,9 @@
 *.o
 *.a
 *.wasm.map
+build/bin/demo
+build/bin/*.jpg
+build/bin/*.png
 
 # CMake internal dirs
 **/CMakeFiles/

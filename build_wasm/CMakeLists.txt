@@ -20,6 +20,9 @@ add_executable(demo
     ${BASE}/SHOW/Henon.cpp
     ${BASE}/SHOW/May.cpp
     ${BASE}/SHOW/Trammel.cpp
+    ${BASE}/SHOW/Lsys.cpp
+    ${BASE}/SHOW/Jout.cpp
+    ${BASE}/SHOW/Pfrac.cpp
     ${BASE}/DEMO/main_wasm.cpp
 )
 

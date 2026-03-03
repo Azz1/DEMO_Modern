@@ -25,6 +25,9 @@
 #include "Henon.hpp"
 #include "May.hpp"
 #include "Trammel.hpp"
+#include "Lsys.hpp"
+#include "Jout.hpp"
+#include "Pfrac.hpp"
 
 // ── Globals ───────────────────────────────────────────────────────────────────
 
@@ -181,14 +184,18 @@ static void mainLoop() {
     ImGui::NewFrame();
 
     if (ImGui::BeginMainMenuBar()) {
-        for (int i=0;i<(int)gPlugins.size();++i) {
-            bool sel=(i==gActive);
-            if (ImGui::MenuItem(gPlugins[i]->name().c_str(),nullptr,sel)) gActive=i;
+        if (ImGui::BeginMenu("Demo")) {
+            for (int i=0;i<(int)gPlugins.size();++i) {
+                bool sel=(i==gActive);
+                if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
+                                    std::to_string(i+1).c_str(), sel)) gActive=i;
+            }
+            ImGui::EndMenu();
         }
         ImGui::Separator();
         if (ImGui::MenuItem("📷 Save JPG","F12")) openSaveDlg();
         ImGui::Separator();
-        ImGui::TextDisabled("(keys 1-8)  |  drag to zoom");
+        ImGui::TextDisabled(gPlugins[gActive]->name().c_str());
         ImGui::EndMainMenuBar();
     }
 
@@ -243,6 +250,9 @@ int main() {
     gPlugins.push_back(std::make_unique<HenonPlugin>());
     gPlugins.push_back(std::make_unique<MayPlugin>());
     gPlugins.push_back(std::make_unique<TrammelPlugin>());
+    gPlugins.push_back(std::make_unique<LsysPlugin>());
+    gPlugins.push_back(std::make_unique<JoutPlugin>());
+    gPlugins.push_back(std::make_unique<PfracPlugin>());
     for (auto& p : gPlugins) p->setup(gRenderer);
 
     emscripten_set_main_loop(mainLoop, 0, 1);

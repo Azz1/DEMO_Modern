@@ -23,6 +23,9 @@
 #include "Henon.hpp"
 #include "May.hpp"
 #include "Trammel.hpp"
+#include "Lsys.hpp"
+#include "Jout.hpp"
+#include "Pfrac.hpp"
 
 namespace fs = std::filesystem;
 
@@ -127,6 +130,9 @@ int main() {
     plugins.push_back(std::make_unique<HenonPlugin>());
     plugins.push_back(std::make_unique<MayPlugin>());
     plugins.push_back(std::make_unique<TrammelPlugin>());
+    plugins.push_back(std::make_unique<LsysPlugin>());
+    plugins.push_back(std::make_unique<JoutPlugin>());
+    plugins.push_back(std::make_unique<PfracPlugin>());
     for (auto& p : plugins) p->setup(renderer);
 
     // Init save dir to cwd
@@ -172,16 +178,20 @@ int main() {
 
         // ── Menu bar ──
         if (ImGui::BeginMainMenuBar()) {
-            for (int i=0;i<(int)plugins.size();++i) {
-                bool sel=(i==active);
-                if (ImGui::MenuItem(plugins[i]->name().c_str(),nullptr,sel))
-                    active=i;
+            if (ImGui::BeginMenu("Demo")) {
+                for (int i=0;i<(int)plugins.size();++i) {
+                    bool sel=(i==active);
+                    if (ImGui::MenuItem(plugins[i]->name().c_str(),
+                                        std::to_string(i+1).c_str(), sel))
+                        active=i;
+                }
+                ImGui::EndMenu();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("📷 Save JPG","F12"))
                 openSaveDialog(plugins[active]->name());
             ImGui::Separator();
-            ImGui::TextDisabled("(keys 1-8)  |  drag to zoom");
+            ImGui::TextDisabled(plugins[active]->name().c_str());
             ImGui::EndMainMenuBar();
         }
 
