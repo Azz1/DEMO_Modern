@@ -26,6 +26,10 @@
 #include "Lsys.hpp"
 #include "Jout.hpp"
 #include "Pfrac.hpp"
+#include "Eyes.hpp"
+#include "GraphView.hpp"
+#include "Diagram.hpp"
+#include "Geograph.hpp"
 
 namespace fs = std::filesystem;
 
@@ -133,6 +137,10 @@ int main() {
     plugins.push_back(std::make_unique<LsysPlugin>());
     plugins.push_back(std::make_unique<JoutPlugin>());
     plugins.push_back(std::make_unique<PfracPlugin>());
+    plugins.push_back(std::make_unique<EyesPlugin>());
+    plugins.push_back(std::make_unique<GraphViewPlugin>());
+    plugins.push_back(std::make_unique<DiagramPlugin>());
+    plugins.push_back(std::make_unique<GeographPlugin>());
     for (auto& p : plugins) p->setup(renderer);
 
     // Init save dir to cwd
@@ -159,8 +167,6 @@ int main() {
             ImGui_ImplSDL2_ProcessEvent(&e);
             if (e.type==SDL_QUIT) running=false;
             if (e.type==SDL_KEYDOWN && !browserOpen) {
-                if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_8)
-                    active = e.key.keysym.sym-SDLK_1;
                 if (e.key.keysym.sym==SDLK_F12)
                     openSaveDialog(plugins[active]->name());
             }
@@ -179,10 +185,21 @@ int main() {
         // ── Menu bar ──
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Demo")) {
-                for (int i=0;i<(int)plugins.size();++i) {
+                int evalStart = (int)plugins.size()-3;
+                for (int i=0;i<evalStart;++i) {
                     bool sel=(i==active);
                     if (ImGui::MenuItem(plugins[i]->name().c_str(),
-                                        std::to_string(i+1).c_str(), sel))
+                                        nullptr,sel))
+                        active=i;
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Evaluate")) {
+                int evalStart2 = (int)plugins.size()-3;
+                for (int i=evalStart2;i<(int)plugins.size();++i) {
+                    bool sel=(i==active);
+                    if (ImGui::MenuItem(plugins[i]->name().c_str(),
+                                        nullptr,sel))
                         active=i;
                 }
                 ImGui::EndMenu();

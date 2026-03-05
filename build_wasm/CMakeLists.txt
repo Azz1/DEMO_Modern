@@ -23,6 +23,10 @@ add_executable(demo
     ${BASE}/SHOW/Lsys.cpp
     ${BASE}/SHOW/Jout.cpp
     ${BASE}/SHOW/Pfrac.cpp
+    ${BASE}/SHOW/Eyes.cpp
+    ${BASE}/SHOW/GraphView.cpp
+    ${BASE}/SHOW/Diagram.cpp
+    ${BASE}/SHOW/Geograph.cpp
     ${BASE}/DEMO/main_wasm.cpp
 )
 

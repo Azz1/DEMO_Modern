@@ -28,6 +28,10 @@
 #include "Lsys.hpp"
 #include "Jout.hpp"
 #include "Pfrac.hpp"
+#include "Eyes.hpp"
+#include "GraphView.hpp"
+#include "Diagram.hpp"
+#include "Geograph.hpp"
 
 // ── Globals ───────────────────────────────────────────────────────────────────
 
@@ -167,8 +171,6 @@ static void mainLoop() {
         ImGui_ImplSDL2_ProcessEvent(&e);
         if (e.type==SDL_QUIT) { emscripten_cancel_main_loop(); return; }
         if (e.type==SDL_KEYDOWN && !gShowSaveDlg) {
-            if (e.key.keysym.sym>=SDLK_1 && e.key.keysym.sym<=SDLK_8)
-                gActive = e.key.keysym.sym-SDLK_1;
             if (e.key.keysym.sym==SDLK_F12) openSaveDlg();
         }
         if (!gShowSaveDlg)
@@ -184,16 +186,28 @@ static void mainLoop() {
     ImGui::NewFrame();
 
     if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("Demo")) {
-            for (int i=0;i<(int)gPlugins.size();++i) {
-                bool sel=(i==gActive);
-                if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
-                                    std::to_string(i+1).c_str(), sel)) gActive=i;
+            if (ImGui::BeginMenu("Demo")) {
+                int evalStart = (int)gPlugins.size()-3;
+                for (int i=0;i<evalStart;++i) {
+                    bool sel=(i==gActive);
+                    if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
+                                        nullptr,sel))
+                        gActive=i;
+                }
+                ImGui::EndMenu();
             }
-            ImGui::EndMenu();
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem("📷 Save JPG","F12")) openSaveDlg();
+            if (ImGui::BeginMenu("Evaluate")) {
+                int evalStart2 = (int)gPlugins.size()-3;
+                for (int i=evalStart2;i<(int)gPlugins.size();++i) {
+                    bool sel=(i==gActive);
+                    if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
+                                        nullptr,sel))
+                        gActive=i;
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("📷 Save JPG","F12")) openSaveDlg();
         ImGui::Separator();
         ImGui::TextDisabled(gPlugins[gActive]->name().c_str());
         ImGui::EndMainMenuBar();
@@ -253,6 +267,10 @@ int main() {
     gPlugins.push_back(std::make_unique<LsysPlugin>());
     gPlugins.push_back(std::make_unique<JoutPlugin>());
     gPlugins.push_back(std::make_unique<PfracPlugin>());
+    gPlugins.push_back(std::make_unique<EyesPlugin>());
+    gPlugins.push_back(std::make_unique<GraphViewPlugin>());
+    gPlugins.push_back(std::make_unique<DiagramPlugin>());
+    gPlugins.push_back(std::make_unique<GeographPlugin>());
     for (auto& p : gPlugins) p->setup(gRenderer);
 
     emscripten_set_main_loop(mainLoop, 0, 1);
