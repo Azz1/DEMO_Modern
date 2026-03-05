@@ -32,6 +32,7 @@
 #include "GraphView.hpp"
 #include "Diagram.hpp"
 #include "Geograph.hpp"
+#include "Gwb.hpp"
 
 // ── Globals ───────────────────────────────────────────────────────────────────
 
@@ -186,25 +187,33 @@ static void mainLoop() {
     ImGui::NewFrame();
 
     if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("Demo")) {
-                int evalStart = (int)gPlugins.size()-3;
-                for (int i=0;i<evalStart;++i) {
-                    bool sel=(i==gActive);
-                    if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
-                                        nullptr,sel))
-                        gActive=i;
+            {
+                int cadStart  = (int)gPlugins.size()-1;
+                int evalStart = cadStart-3;
+                if (ImGui::BeginMenu("Demo")) {
+                    for (int i=0;i<evalStart;++i) {
+                        bool sel=(i==gActive);
+                        if (ImGui::MenuItem(gPlugins[i]->name().c_str(),nullptr,sel))
+                            gActive=i;
+                    }
+                    ImGui::EndMenu();
                 }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Evaluate")) {
-                int evalStart2 = (int)gPlugins.size()-3;
-                for (int i=evalStart2;i<(int)gPlugins.size();++i) {
-                    bool sel=(i==gActive);
-                    if (ImGui::MenuItem(gPlugins[i]->name().c_str(),
-                                        nullptr,sel))
-                        gActive=i;
+                if (ImGui::BeginMenu("Evaluate")) {
+                    for (int i=evalStart;i<cadStart;++i) {
+                        bool sel=(i==gActive);
+                        if (ImGui::MenuItem(gPlugins[i]->name().c_str(),nullptr,sel))
+                            gActive=i;
+                    }
+                    ImGui::EndMenu();
                 }
-                ImGui::EndMenu();
+                if (ImGui::BeginMenu("CAD")) {
+                    for (int i=cadStart;i<(int)gPlugins.size();++i) {
+                        bool sel=(i==gActive);
+                        if (ImGui::MenuItem(gPlugins[i]->name().c_str(),nullptr,sel))
+                            gActive=i;
+                    }
+                    ImGui::EndMenu();
+                }
             }
             ImGui::Separator();
             if (ImGui::MenuItem("📷 Save JPG","F12")) openSaveDlg();
@@ -271,6 +280,7 @@ int main() {
     gPlugins.push_back(std::make_unique<GraphViewPlugin>());
     gPlugins.push_back(std::make_unique<DiagramPlugin>());
     gPlugins.push_back(std::make_unique<GeographPlugin>());
+    gPlugins.push_back(std::make_unique<GwbPlugin>());
     for (auto& p : gPlugins) p->setup(gRenderer);
 
     emscripten_set_main_loop(mainLoop, 0, 1);

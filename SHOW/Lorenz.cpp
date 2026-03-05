@@ -1,6 +1,7 @@
 #include "Lorenz.hpp"
 #include <imgui.h>
 #include <cmath>
+#include <algorithm>
 
 void LorenzPlugin::setup(SDL_Renderer*) { recompute(); }
 
@@ -64,6 +65,21 @@ void LorenzPlugin::renderScene(const RenderContext& ctx) {
         SDL_SetRenderDrawColor(ctx.renderer, r, g, bl, 180);
         SDL_RenderDrawLineF(ctx.renderer, a.x, a.y, b.x, b.y);
     }
+}
+
+void LorenzPlugin::handleEvent(const SDL_Event& e, const RenderContext&) {
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    if (e.type==SDL_MOUSEBUTTONDOWN&&e.button.button==SDL_BUTTON_LEFT) {
+        drag_=true; dragSX_=e.button.x; dragSY_=e.button.y;
+        dragBaseX_=rotX_; dragBaseY_=rotY_;
+    }
+    if (e.type==SDL_MOUSEBUTTONUP&&e.button.button==SDL_BUTTON_LEFT) drag_=false;
+    if (e.type==SDL_MOUSEMOTION&&drag_) {
+        rotX_ = dragBaseX_ + (e.motion.y - dragSY_) * 0.4f;
+        rotY_ = dragBaseY_ + (e.motion.x - dragSX_) * 0.4f;
+    }
+    if (e.type==SDL_MOUSEWHEEL)
+        zoom_ = std::max(1.f, zoom_ + e.wheel.y * 0.5f);
 }
 
 void LorenzPlugin::teardown() {}

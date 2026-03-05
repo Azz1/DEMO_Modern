@@ -30,6 +30,7 @@
 #include "GraphView.hpp"
 #include "Diagram.hpp"
 #include "Geograph.hpp"
+#include "Gwb.hpp"
 
 namespace fs = std::filesystem;
 
@@ -141,6 +142,7 @@ int main() {
     plugins.push_back(std::make_unique<GraphViewPlugin>());
     plugins.push_back(std::make_unique<DiagramPlugin>());
     plugins.push_back(std::make_unique<GeographPlugin>());
+    plugins.push_back(std::make_unique<GwbPlugin>());
     for (auto& p : plugins) p->setup(renderer);
 
     // Init save dir to cwd
@@ -184,25 +186,33 @@ int main() {
 
         // ── Menu bar ──
         if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("Demo")) {
-                int evalStart = (int)plugins.size()-3;
-                for (int i=0;i<evalStart;++i) {
-                    bool sel=(i==active);
-                    if (ImGui::MenuItem(plugins[i]->name().c_str(),
-                                        nullptr,sel))
-                        active=i;
+            {
+                int cadStart  = (int)plugins.size()-1;  // GWB = last 1
+                int evalStart = cadStart-3;              // GraphView,Diagram,Geograph
+                if (ImGui::BeginMenu("Demo")) {
+                    for (int i=0;i<evalStart;++i) {
+                        bool sel=(i==active);
+                        if (ImGui::MenuItem(plugins[i]->name().c_str(),nullptr,sel))
+                            active=i;
+                    }
+                    ImGui::EndMenu();
                 }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Evaluate")) {
-                int evalStart2 = (int)plugins.size()-3;
-                for (int i=evalStart2;i<(int)plugins.size();++i) {
-                    bool sel=(i==active);
-                    if (ImGui::MenuItem(plugins[i]->name().c_str(),
-                                        nullptr,sel))
-                        active=i;
+                if (ImGui::BeginMenu("Evaluate")) {
+                    for (int i=evalStart;i<cadStart;++i) {
+                        bool sel=(i==active);
+                        if (ImGui::MenuItem(plugins[i]->name().c_str(),nullptr,sel))
+                            active=i;
+                    }
+                    ImGui::EndMenu();
                 }
-                ImGui::EndMenu();
+                if (ImGui::BeginMenu("CAD")) {
+                    for (int i=cadStart;i<(int)plugins.size();++i) {
+                        bool sel=(i==active);
+                        if (ImGui::MenuItem(plugins[i]->name().c_str(),nullptr,sel))
+                            active=i;
+                    }
+                    ImGui::EndMenu();
+                }
             }
             ImGui::Separator();
             if (ImGui::MenuItem("📷 Save JPG","F12"))

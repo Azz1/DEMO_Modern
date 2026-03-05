@@ -27,6 +27,18 @@ add_executable(demo
     ${BASE}/SHOW/GraphView.cpp
     ${BASE}/SHOW/Diagram.cpp
     ${BASE}/SHOW/Geograph.cpp
+    ${BASE}/SHOW/GWB/gwb_mat.c
+    ${BASE}/SHOW/GWB/gwb_3d.c
+    ${BASE}/SHOW/GWB/gwb_core.c
+    ${BASE}/SHOW/GWB/gwb_euler.c
+    ${BASE}/SHOW/GWB/gwb_adv.c
+    ${BASE}/SHOW/GWB/gwb_geo.c
+    ${BASE}/SHOW/GWB/gwb_bool.c
+    ${BASE}/SHOW/GWB/gwb_split.c
+    ${BASE}/SHOW/GWB/gwb_trans.c
+    ${BASE}/SHOW/GWB/gwb_undo.c
+    ${BASE}/SHOW/GWB/gwb_shgwb.c
+    ${BASE}/SHOW/Gwb.cpp
     ${BASE}/DEMO/main_wasm.cpp
 )
 

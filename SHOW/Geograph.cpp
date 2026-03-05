@@ -601,6 +601,10 @@ void GeographPlugin::handleEvent(const SDL_Event& e, const RenderContext& ctx) {
         theta_=std::max(5.f,std::min(175.f,panBaseTheta_+dy*0.3f));
         dirty_=true;
     }
+    if(e.type==SDL_MOUSEWHEEL){
+        radiu_=std::max(50.f, radiu_-e.wheel.y*20.f);
+        dirty_=true;
+    }
 }
 
 // ── renderUI ─────────────────────────────────────────────────────────────────
