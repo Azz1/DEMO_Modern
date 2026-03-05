@@ -294,6 +294,10 @@ void GeographPlugin::initProj(int W, int H) {
     proj_.D=depF_;
     proj_.Vsx=W/2; proj_.Vsy=(H/2);
     proj_.valid=(proj_.u>1e-4&&proj_.v>1e-4&&proj_.D>1e-4);
+    // Eye position in grid-index coords (always available after initProj)
+    eyeGX_=((float)proj_.a-sx_)/stepx_;
+    eyeGY_=((float)proj_.b-sy_)/stepy_;
+    eyeGZ_=(float)proj_.c;
 }
 
 bool GeographPlugin::trans3D(float wx,float wy,float wz,int&sx2,int&sy2){
@@ -444,12 +448,7 @@ void GeographPlugin::render3DWire(SDL_Renderer* r, int W, int H, int top) {
 // ── 3D with true hidden surface (port of DrawPane op=1) ─────────────────────
 void GeographPlugin::render3DHidden(SDL_Renderer* r, int W, int H, int top) {
     int dH=H-top;
-    initProj(W,dH);
-
-    // Eye world position → grid-index coords
-    eyeGX_=((float)proj_.a-sx_)/stepx_;  // proj_.d=0
-    eyeGY_=((float)proj_.b-sy_)/stepy_;
-    eyeGZ_=(float)proj_.c;
+    initProj(W,dH);  // also sets eyeGX_/eyeGY_/eyeGZ_
 
     // Pre-compute screen positions and ze for all grid points
     struct SP { int sx,sy; float ze; bool front; };
@@ -556,6 +555,81 @@ void GeographPlugin::render3DCont(SDL_Renderer* r, int W, int H, int top) {
     dirty_=false;
 }
 
+// ── 3D contour + hidden surface (ray-march occlusion per contour point) ──────
+void GeographPlugin::render3DContHidden(SDL_Renderer* r, int W, int H, int top) {
+    buildContour(levels_);
+    int dH=H-top;
+    initProj(W,dH);   // sets eyeGX_/GY_/GZ_
+
+    SDL_SetRenderDrawColor(r,8,8,18,255);
+    SDL_RenderClear(r);
+
+    // Bilinear z at any world (x,y)
+    auto getZ=[&](float x,float y)->float{
+        int i=(int)((x-sx_)/stepx_), j=(int)((y-sy_)/stepy_);
+        i=std::max(0,std::min(i,n_-2)); j=std::max(0,std::min(j,m_-2));
+        float tx=(x-sx_-i*stepx_)/stepx_, ty=(y-sy_-j*stepy_)/stepy_;
+        return grid_[j][i]*(1-tx)*(1-ty)+grid_[j][i+1]*tx*(1-ty)
+              +grid_[j+1][i]*(1-tx)*ty  +grid_[j+1][i+1]*tx*ty;
+    };
+
+    // World (x,y,z) → grid-index (gx,gy,gz) for visibility test
+    auto wToG=[&](float x,float y,float z,float&gx,float&gy,float&gz){
+        gx=(x-sx_)/stepx_; gy=(y-sy_)/stepy_; gz=z;
+    };
+
+    float dh=(maxZ_-minZ_)/levels_;
+    float hz=minZ_;
+
+    for(auto& fl:contours_){
+        Uint8 cr2,cg2,cb2; contColour(colorOp_,hz,cr2,cg2,cb2);
+        SDL_SetRenderDrawColor(r,cr2,cg2,cb2,255);
+
+        for(auto& fc:fl){
+            for(int k=0;k<(int)fc.size()-1;++k){
+                float ax=fc[k][0],  ay=fc[k][1],  az=getZ(ax,ay);
+                float bx=fc[k+1][0],by=fc[k+1][1],bz=getZ(bx,by);
+                float agx,agy,agz, bgx,bgy,bgz;
+                wToG(ax,ay,az,agx,agy,agz);
+                wToG(bx,by,bz,bgx,bgy,bgz);
+
+                bool va=isVisible(agx,agy,agz);
+                bool vb=isVisible(bgx,bgy,bgz);
+
+                if(!va&&!vb) continue;
+
+                if(va&&vb){
+                    // Both visible: project and draw
+                    int sx0,sy0,sx1,sy1;
+                    if(trans3D(ax,ay,az,sx0,sy0)&&trans3D(bx,by,bz,sx1,sy1))
+                        SDL_RenderDrawLine(r,sx0,sy0+top,sx1,sy1+top);
+                } else {
+                    // One hidden: binary search for boundary (Divedge-style)
+                    float vx=ax,vy=ay,vz=az;   // visible end (world)
+                    float hx=bx,hy=by,hz2=bz;  // hidden end
+                    float vgx=agx,vgy=agy,vgz=agz;
+                    if(!va){
+                        std::swap(vx,hx);std::swap(vy,hy);std::swap(vz,hz2);
+                        std::swap(vgx,bgx);std::swap(vgy,bgy);std::swap(vgz,bgz);
+                    }
+                    for(int s=0;s<8;++s){
+                        float mx=(vx+hx)*0.5f,my=(vy+hy)*0.5f;
+                        float mz=getZ(mx,my);
+                        float mgx,mgy,mgz; wToG(mx,my,mz,mgx,mgy,mgz);
+                        if(isVisible(mgx,mgy,mgz)){vx=mx;vy=my;vz=mz;}
+                        else                       {hx=mx;hy=my;hz2=mz;}
+                    }
+                    int sx0,sy0,sx1,sy1;
+                    if(trans3D(vx,vy,vz,sx0,sy0)&&trans3D(hx,hy,hz2,sx1,sy1))
+                        SDL_RenderDrawLine(r,sx0,sy0+top,sx1,sy1+top);
+                }
+            }
+        }
+        hz+=dh;
+    }
+    dirty_=false;
+}
+
 // ── Color bar ─────────────────────────────────────────────────────────────────
 void GeographPlugin::drawColorBar(SDL_Renderer* r, int W, int H, int top) {
     int barH=H-top-20, barX=W-18, steps=barH;
@@ -575,7 +649,8 @@ void GeographPlugin::renderScene(const RenderContext& ctx) {
         case 1: render2DContour(ctx.renderer,W,H,top); break;
         case 2: render3DWire   (ctx.renderer,W,H,top); break;
         case 3: render3DHidden (ctx.renderer,W,H,top); break;
-        case 4: render3DCont   (ctx.renderer,W,H,top); break;
+        case 4: render3DCont      (ctx.renderer,W,H,top); break;
+        case 5: render3DContHidden(ctx.renderer,W,H,top); break;
     }
     drawColorBar(ctx.renderer,W,H,top);
 
@@ -642,9 +717,10 @@ void GeographPlugin::renderUI() {
     ImGui::SeparatorText("Mode");
     ImGui::RadioButton("2D Map",    &mode_,0); ImGui::SameLine();
     ImGui::RadioButton("2D Cont.",  &mode_,1);
-    ImGui::RadioButton("3D Wire",   &mode_,2); ImGui::SameLine();
-    ImGui::RadioButton("3D Solid",  &mode_,3); ImGui::SameLine();
-    ImGui::RadioButton("3D+Cont",   &mode_,4);
+    ImGui::RadioButton("3D Wire",      &mode_,2); ImGui::SameLine();
+    ImGui::RadioButton("3D Solid",     &mode_,3);
+    ImGui::RadioButton("3D+Cont",      &mode_,4); ImGui::SameLine();
+    ImGui::RadioButton("3D+Cont(Hide)",&mode_,5);
 
     ImGui::SeparatorText("Parameters");
     if(ImGui::SliderInt("Levels",&levels_,2,300)){contours_.clear();builtContourLevels_=0;dirty_=true;}

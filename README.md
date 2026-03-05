@@ -295,8 +295,9 @@ Terrain height-map visualizer with five display modes.
 | 2D Map | 高度热力图着色 / Height heatmap |
 | 2D Contour | 等高线（Marching Squares） / Contour lines |
 | 3D Wire | 透视线框 / Perspective wireframe |
-| 3D Hidden | 射线检测遮掩线框 / Ray-march hidden surface removal |
-| 3D+Cont | 3D 空间等高线 / 3D contour projection |
+| 3D Solid | 射线检测遮掩线框 / Ray-march hidden surface wireframe |
+| 3D+Cont | 3D 空间等高线（无遮掩）/ 3D contour projection (no occlusion) |
+| 3D+Cont(Hide) | 3D 等高线 + 射线检测遮掩（Divedge 边界二分）/ 3D contour with ray-march occlusion |
 
 **数据格式 / Data Format (`.pan`):**
 ```

@@ -62,8 +62,9 @@ private:
     void render2DMap    (SDL_Renderer*,int W,int H,int top);
     void render2DContour(SDL_Renderer*,int W,int H,int top);
     void render3DWire   (SDL_Renderer*,int W,int H,int top);
-    void render3DHidden (SDL_Renderer*,int W,int H,int top);
-    void render3DCont   (SDL_Renderer*,int W,int H,int top);
+    void render3DHidden    (SDL_Renderer*,int W,int H,int top);
+    void render3DCont      (SDL_Renderer*,int W,int H,int top);
+    void render3DContHidden(SDL_Renderer*,int W,int H,int top);
 
     // Visibility helpers (port of original pvisible/getposi/faceeq)
     static void faceEq(float ix,float iy,float iz,
